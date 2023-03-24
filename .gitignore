@@ -6,3 +6,5 @@
 !fish.py
 !__init__.py
 !requirements.txt
+!/specs
+!test*
