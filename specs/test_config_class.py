@@ -4,6 +4,7 @@ from ..config import Config, ConfFormData, _settings
 
 
 def test_config_init_local_env():
+    """checking that .env files are loaded properly is local_env arg is passed"""
     conf = Config(local_env=True)
     assert conf.db_host == _settings.db_host
     assert conf.db_port == _settings.db_port
@@ -15,6 +16,7 @@ def test_config_init_local_env():
     assert conf.usr_agent == _settings.usr_agent
 
 def test_config_init_form_data():
+    """testing constructor handels dict data from pydantic model"""
     form_data = ConfFormData(
         db_host='localhost',
         db_port=5432,
@@ -38,6 +40,7 @@ def test_config_init_form_data():
     assert conf.usr_agent == 'myuseragent'
 
 def test_config_init_invalid_form_data():
+    """checking pydantic properly validates types"""
     with pytest.raises(ValidationError):
         form_data = ConfFormData(
             db_host='localhost',
@@ -50,4 +53,38 @@ def test_config_init_invalid_form_data():
             usr_agent='myuseragent'
         )
 
+def test_to_json_method():
+    """checking all keys and values in the object json"""
+    form_data = ConfFormData(
+        db_host='localhost',
+        db_port=5432,
+        db_pass='password',
+        db_name='mydb',
+        db_usr_name='myuser',
+        client_id='myclientid',
+        client_secret='myclientsecret',
+        usr_agent='myuseragent'
+    )
+    conf = Config(form_data=form_data)
+    conf_json = conf.to_json()
+    # print(conf_json)
+    assert conf_json['db_host'] == 'localhost'
+    assert conf_json['db_port'] == 5432
+    assert conf_json['db_pass'] == 'password'
+    assert conf_json['db_name'] == 'mydb'
+    assert conf_json['db_usr_name'] == 'myuser'
+    assert conf_json['client_id'] == 'myclientid'
+    assert conf_json['client_secret'] == 'myclientsecret'
+    assert conf_json['usr_agent'] == 'myuseragent'
+    assert conf_json['output'] == None
+
+def test_set_output_method():
+    conf = Config(local_env=True)
+    conf.set_output('test')
+    assert conf.output == 'test'
+
+def test_init_invalid_args():
+    """checking that constructor raises error when invalid args are passed"""
+    with pytest.raises(TypeError):
+        conf = Config('invalid_arg')
 

@@ -2,6 +2,7 @@ from pydantic import BaseSettings
 from pydantic import BaseModel
 from typing import Any
 import os
+import json
 
 
 class ConfFormData(BaseModel):
@@ -36,10 +37,11 @@ _settings = _settings()
 class Config:
     def __init__(
         self,
-        local_env: bool = False,
-        form_data: dict | None = None
+        # local_env: bool = False,
+        # form_data: dict | None = None,
+        **kwargs
     ):
-        if local_env:
+        if kwargs and kwargs.get('local_env') == True:
             settings = _settings
             self.db_host = settings.db_host
             self.db_port = settings.db_port
@@ -51,7 +53,8 @@ class Config:
             self.usr_agent = settings.usr_agent
             self.output = None
 
-        if form_data:
+        if kwargs and kwargs.get('form_data'):
+            form_data = kwargs.get('form_data')
             self.db_host = form_data.db_host
             self.db_port = form_data.db_port
             self.db_pass = form_data.db_pass
@@ -61,5 +64,32 @@ class Config:
             self.client_secret = form_data.client_secret
             self.usr_agent = form_data.usr_agent
             self.output = None
+
+
+    def set_output(self, output: str):
+        self.output = output
+
+    def __dict__(self):
+        return self.to_json()
+
+    def __str__(self):
+        return json.dumps(self.to_json())
+
+    def __repr__(self):
+        return self.__str__()
+
+    def to_json(self) -> dict[str, Any]:
+        return {
+            'db_host': self.db_host,
+            'db_port': self.db_port,
+            'db_pass': self.db_pass,
+            'db_name': self.db_name,
+            'db_usr_name': self.db_usr_name,
+            'client_id': self.client_id,
+            'client_secret': self.client_secret,
+            'usr_agent': self.usr_agent,
+            'output': self.output
+        }
+
 
 config = Config()
