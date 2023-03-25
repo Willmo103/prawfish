@@ -1,19 +1,20 @@
+import os
 import pytest
 from pydantic import ValidationError
-from ..config import Config, ConfFormData, _settings
+from ..config import Config, ConfFormData, _Settings
 
 
 def test_config_init_local_env():
     """checking that .env files are loaded properly is local_env arg is passed"""
     conf = Config(local_env=True)
-    assert conf.db_host == _settings.db_host
-    assert conf.db_port == _settings.db_port
-    assert conf.db_pass == _settings.db_pass
-    assert conf.db_name == _settings.db_name
-    assert conf.db_usr_name == _settings.db_usr_name
-    assert conf.client_id == _settings.client_id
-    assert conf.client_secret == _settings.client_secret
-    assert conf.usr_agent == _settings.usr_agent
+    assert conf.db_host == _Settings.db_host
+    assert conf.db_port == _Settings.db_port
+    assert conf.db_pass == _Settings.db_pass
+    assert conf.db_name == _Settings.db_name
+    assert conf.db_usr_name == _Settings.db_usr_name
+    assert conf.client_id == _Settings.client_id
+    assert conf.client_secret == _Settings.client_secret
+    assert conf.usr_agent == _Settings.usr_agent
 
 def test_config_init_form_data():
     """testing constructor handels dict data from pydantic model"""
@@ -67,7 +68,6 @@ def test_to_json_method():
     )
     conf = Config(form_data=form_data)
     conf_json = conf.to_json()
-    # print(conf_json)
     assert conf_json['db_host'] == 'localhost'
     assert conf_json['db_port'] == 5432
     assert conf_json['db_pass'] == 'password'
@@ -79,6 +79,7 @@ def test_to_json_method():
     assert conf_json['output'] == None
 
 def test_set_output_method():
+    """checking that set_output method works properly"""
     conf = Config(local_env=True)
     conf.set_output('test')
     assert conf.output == 'test'
@@ -88,3 +89,22 @@ def test_init_invalid_args():
     with pytest.raises(TypeError):
         conf = Config('invalid_arg')
 
+def test_write_to_json_method():
+    """checking that write_json_file method works properly"""
+    conf = Config(local_env=True)
+    conf.write_to_json('test.json')
+    conf2 = Config(file_path='test.json')
+    assert conf.db_host == conf2.db_host
+    assert conf.db_port == conf2.db_port
+    assert conf.db_pass == conf2.db_pass
+    assert conf.db_name == conf2.db_name
+    assert conf.db_usr_name == conf2.db_usr_name
+    assert conf.client_id == conf2.client_id
+    assert conf.client_secret == conf2.client_secret
+    assert conf.usr_agent == conf2.usr_agent
+    os.remove('test.json')
+
+def test_database_url_method():
+    """checking that database_url method works properly"""
+    conf = Config(local_env=True)
+    assert conf.database_url() == f'postgresql://{conf.db_usr_name}:{conf.db_pass}@{conf.db_host}:{conf.db_port}/{conf.db_name}'
