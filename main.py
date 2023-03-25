@@ -5,7 +5,6 @@ from starlette.middleware.cors import CORSMiddleware
 from starlette.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 from pathlib import Path
-
 from database import get_db
 
 # Initialize App as 'app'
@@ -25,7 +24,6 @@ templates = Jinja2Templates(templates_folder)
 origins = ["*"]
 
 
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -36,5 +34,7 @@ app.add_middleware(
 
 
 app.get("/")
+
+
 def home(request: Request, db: Session = Depends(get_db)):
-    credentials_
+    ...

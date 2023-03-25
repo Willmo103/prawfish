@@ -2,14 +2,14 @@
 # used the sample code here to set up my database connection.
 
 from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+from . import DATABASE_URL
 
 
 from os import environ as env
 
 # import for pydantic settings model for .env file
-from config import settings
+from .config import Config
 
 ## PRODUCTION ##
 # SQLALCHEMY_DATABASE_URL = (
@@ -18,16 +18,15 @@ from config import settings
 # )
 
 ## DEV ##
-SQLALCHEMY_DATABASE_URL = (
-    f"postgresql://{settings.database_username}:{settings.database_password}@"
-    f"{settings.database_hostname}:{settings.database_port}/{settings.database_name}"
-)
+# SQLALCHEMY_DATABASE_URL = (
+#     f"postgresql://{settings.database_username}:{settings.database_password}@"
+#     f"{settings.database_hostname}:{settings.database_port}/{settings.database_name}"
+# )
 
-engine = create_engine(SQLALCHEMY_DATABASE_URL)
+
+engine = create_engine(DATABASE_URL)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-Base = declarative_base()
 
 
 # call this function as a dependency when preforming database operations
