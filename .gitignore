@@ -1,4 +1,4 @@
-*
+﻿*
 !Dockerfile
 !.gitignore
 !database.py
@@ -6,5 +6,7 @@
 !fish.py
 !__init__.py
 !requirements.txt
-!/specs
+!/specs*
 !test*
+!/templates
+!main.py

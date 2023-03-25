@@ -2,6 +2,7 @@ from pydantic import BaseSettings
 from pydantic import BaseModel
 from praw import Reddit
 from typing import Any
+from sqlalchemy.orm import Session
 import os
 import json
 
@@ -58,7 +59,7 @@ class Config:
                     )
 
             if kwargs.get("local_env") == True:
-                settings: _settings = _Settings
+                settings: _Settings = _settings
 
             elif kwargs.get("form_data"):
                 settings: ConfFormData = kwargs.get("form_data")
@@ -94,24 +95,18 @@ class Config:
                 return
             except FileNotFoundError:
                 raise FileNotFoundError(
-                    "File not found. Please check the file path and try again."
+                    "Unable to load config from environment variables or config.json. Please provide either local_env, form_data, or file_path keyword argument."
                 )
         else:
-            raise ValueError(
-                "Must provide either local_env, form_data, or file_path keyword argument"
-            )
-
-    def set_output(self, output: str):
-        self.output = output
-
-    def __dict__(self):
-        return self.to_json()
-
-    def __str__(self):
-        return json.dumps(self.to_json())
-
-    def __repr__(self):
-        return self.__str__()
+            self.db_host = None
+            self.db_port = None
+            self.db_pass = None
+            self.db_name = None
+            self.db_usr_name = None
+            self.client_id = None
+            self.client_secret = None
+            self.usr_agent = None
+            self.output = None
 
     def to_json(self) -> dict[str, Any]:
         return {
@@ -160,15 +155,67 @@ class Config:
                 "File not found. Please check the file path and try again."
             )
 
+    # return the database url for the sqlalchemy engine
     def database_url(self) -> str:
+        """ return the database url for the sqlalchemy engine"""
         return f"postgresql://{self.db_usr_name}:{self.db_pass}@{self.db_host}:{self.db_port}/{self.db_name}"
 
+    # return the reddit instance for the praw api
     def build_reddit_instance(self) -> Reddit:
-        return Reddit(
+        """ return the reddit instance for the praw api """
+        reddit = Reddit(
             client_id=self.client_id,
             client_secret=self.client_secret,
             user_agent=self.usr_agent,
         )
+        return reddit
+
+    def is_empty(self) -> bool:
+        """ return True if all attributes are None """
+        return all([getattr(self, attr) is None for attr in self.__dict__])
+
+    def set_output(self, output: str):
+        self.output = output
+
+    def __dict__(self):
+        return self.to_json()
+
+    def __str__(self):
+        return json.dumps(self.to_json())
+
+    def __repr__(self):
+        return self.__str__()
+
+    def set_db_host(self, db_host: str):
+        self.db_host = db_host
+
+    def set_db_port(self, db_port: int):
+        self.db_port = db_port
+
+    def set_db_pass(self, db_pass: str):
+        self.db_pass = db_pass
+
+    def set_db_name(self, db_name: str):
+        self.db_name = db_name
+
+    def set_db_usr_name(self, db_usr_name: str):
+        self.db_usr_name = db_usr_name
+
+    def set_client_id(self, client_id: str):
+        self.client_id = client_id
+
+    def set_client_secret(self, client_secret: str):
+        self.client_secret = client_secret
+
+    def set_usr_agent(self, usr_agent: str):
+        self.usr_agent = usr_agent
 
 
-# config = Config()
+    @classmethod
+    def try_load_from_db(db: Session):
+        config_query = db.query(models.Config).first()
+        if config_query:
+            return config_query.json()
+
+# initialize an instance of this class to import elsewhere
+conf = Config
