@@ -1,9 +1,9 @@
 from pydantic import BaseSettings
 from pydantic import BaseModel
 from praw import Reddit
-from typing import Any, Optional
 from sqlalchemy.orm import Session
 from .models import Config as ConfigDB
+from . import BASE_FILE_PATH
 import os
 import json
 
@@ -30,9 +30,7 @@ class _Settings(BaseSettings):
     usr_agent: str
 
     class Config:
-        env_file = os.path.abspath(__file__).replace(os.path.basename(__file__), ".env")
-
-
+        env_file = BASE_FILE_PATH + ".env"
 # initialize an instance of this class to import elsewhere
 try:
     _settings = _Settings()
